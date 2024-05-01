@@ -1,27 +1,5 @@
 package cron
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
-
-type Job struct {
-	Uuid          string
-	ExecutionTime time.Time
-	Expression    string
-	Name          string
-}
-
-func NewJob(name string, expression string) *Job {
-	return &Job{
-		Uuid:          uuid.NewString(),
-		ExecutionTime: NextExecution(expression),
-		Name:          name,
-		Expression:    expression,
-	}
-}
-
 type node struct {
 	value *Job
 	next  *node
@@ -65,9 +43,9 @@ func (l *JobsQueue) Insert(e *Job) {
 			}
 		}
 
-		// if *previous* is nil it means its the first item so the newNode is now the head
+		// if *previous* is nil it means it's the first item so the newNode is now the head
 		// else the previous node points to the newNode and the newNode points to the *current*
-		// *previous means its the closest node that is supposed to be executed before the newNode*
+		// *previous means it's the closest node that is supposed to be executed before the newNode*
 		// *current means the last found node in the list that is supposed to be executed after the newNode*
 		if previous == nil {
 			l.head = newNode
@@ -101,29 +79,21 @@ func (l *JobsQueue) Shift() *Job {
 	return job
 }
 
-func (l JobsQueue) Iterate() {
-	current := l.head
-
-	for current != nil {
-		current = current.next
-	}
-}
-
-func (l JobsQueue) Tail() *Job {
+func (l *JobsQueue) Tail() *Job {
 	if l.tail != nil {
 		return l.tail.value
 	}
 	return nil
 }
 
-func (l JobsQueue) Head() *Job {
+func (l *JobsQueue) Head() *Job {
 	if l.head != nil {
 		return l.head.value
 	}
 	return nil
 }
 
-func (l JobsQueue) Count() int {
+func (l *JobsQueue) Count() int {
 	return l.count
 }
 
@@ -150,15 +120,11 @@ func (l *JobsQueue) RemoveAt(uuid string) {
 			}
 		} else {
 			previous.next = current.next
-			if current.next == nil { // if the current.next is nil now it means it was the last node in the list so we set tails as the previous
+			if current.next == nil { // if the current.next is nil now it means it was the last node in the list, so we set tails as the previous
 				l.tail = previous
 			}
 		}
 
 		l.count--
 	}
-}
-
-func (job *Job) IsJobScheduledBefore(job2 *Job) bool {
-	return job.ExecutionTime.Before(job2.ExecutionTime)
 }
