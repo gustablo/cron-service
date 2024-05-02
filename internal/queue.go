@@ -60,7 +60,6 @@ func (l *JobsQueue) Insert(e *Job) {
 			l.tail = newNode
 		}
 	}
-
 	l.count++
 }
 

@@ -1,8 +1,9 @@
 package cron
 
 import (
-	"github.com/gitploy-io/cronexpr"
 	"time"
+
+	"github.com/gitploy-io/cronexpr"
 )
 
 func NextExecution(expr string) time.Time {

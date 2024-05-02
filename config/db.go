@@ -9,7 +9,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func OpenConn() (*sql.DB, error) {
+var DB *sql.DB
+
+func OpenConn() {
 	DB_USER := os.Getenv("DB_USER")
 	DB_NAME := os.Getenv("DB_NAME")
 	DB_PASS := os.Getenv("DB_PASS")
@@ -21,5 +23,9 @@ func OpenConn() (*sql.DB, error) {
 	}
 
 	err = db.Ping()
-	return db, err
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	DB = db
 }

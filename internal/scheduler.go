@@ -2,6 +2,7 @@ package cron
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gustablo/cron-service/config"
@@ -21,7 +22,20 @@ func NewScheduler() *Scheduler {
 	}
 }
 
+func (c *Scheduler) loadJobs() {
+	jobs, err := All()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, job := range jobs {
+		c.PendingQueue.Insert(&job)
+	}
+}
+
 func (c *Scheduler) Start() {
+	c.loadJobs()
+
 	go c.pickJobs()
 
 	for job := range c.processChan {
@@ -56,6 +70,11 @@ func (c *Scheduler) pickJobs() {
 }
 
 func (c *Scheduler) process(job *Job) {
+	if job.LastRun.Equal(job.ExecutionTime) {
+		c.reprioritizeJob(job)
+		return
+	}
+
 	fmt.Println("executing:", job.Name)
 	c.RunningQueue.Insert(job)
 
@@ -69,7 +88,10 @@ func (c *Scheduler) process(job *Job) {
 
 func (c *Scheduler) reprioritizeJob(job *Job) {
 	// put in the pending queue again after executed
+	job.LastRun = job.ExecutionTime
 	job.ExecutionTime = NextExecution(job.Expression).Add(1 * time.Second) // adding 1 sec to prevent the job to be set to the same minute
+
+	job.Update()
 
 	// we should insert the job before remove it from the running queue
 	// bc it avoids longest jobs to be catch first
