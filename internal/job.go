@@ -33,6 +33,7 @@ func (job *Job) IsJobScheduledBefore(job2 *Job) bool {
 
 func All() ([]Job, error) {
 	var jobs []Job
+
 	rows, err := config.DB.Query("SELECT uuid, execution_time, last_run, expression, name FROM jobs ORDER BY execution_time ASC")
 	if err != nil {
 		return nil, err
@@ -66,8 +67,8 @@ func (job *Job) Save() error {
 }
 
 func (job *Job) Update() error {
-	_, err := config.DB.Exec("UPDATE jobs SET execution_time = $1, last_run = $2 WHERE uuid = $3",
-		job.ExecutionTime, job.LastRun, job.Uuid)
+	query := "UPDATE jobs SET execution_time = $1, last_run = $2 WHERE uuid = $3"
+	_, err := config.DB.Exec(query, job.ExecutionTime, job.LastRun, job.Uuid)
 	if err != nil {
 		return err
 	}

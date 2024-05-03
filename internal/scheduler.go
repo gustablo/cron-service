@@ -29,7 +29,9 @@ func (c *Scheduler) loadJobs() {
 	}
 
 	for _, job := range jobs {
-		c.PendingQueue.Insert(&job)
+		// Make a copy of job because it will be reassigned with each loop. (golang 1.21 bug)
+		tempJob := job
+		c.PendingQueue.Insert(&tempJob)
 	}
 }
 
@@ -71,11 +73,10 @@ func (c *Scheduler) pickJobs() {
 
 func (c *Scheduler) process(job *Job) {
 	if job.LastRun.Equal(job.ExecutionTime) {
-		c.reprioritizeJob(job)
-		return
+		job.ExecutionTime = NextExecution(job.Expression)
 	}
 
-	fmt.Println("executing:", job.Name)
+	fmt.Println("executing:", job.Uuid)
 	c.RunningQueue.Insert(job)
 
 	sleepDuration := time.Until(job.ExecutionTime)
@@ -84,14 +85,13 @@ func (c *Scheduler) process(job *Job) {
 
 	c.execute(job)
 	c.reprioritizeJob(job)
+	job.Update()
 }
 
 func (c *Scheduler) reprioritizeJob(job *Job) {
 	// put in the pending queue again after executed
 	job.LastRun = job.ExecutionTime
 	job.ExecutionTime = NextExecution(job.Expression).Add(1 * time.Second) // adding 1 sec to prevent the job to be set to the same minute
-
-	job.Update()
 
 	// we should insert the job before remove it from the running queue
 	// bc it avoids longest jobs to be catch first
@@ -100,7 +100,7 @@ func (c *Scheduler) reprioritizeJob(job *Job) {
 }
 
 func (c *Scheduler) execute(job *Job) {
-	fmt.Println("finished:", job.Name)
+	fmt.Println("finished:", job.Uuid)
 }
 
 func (c *Scheduler) isRunningQueueFull() bool {
