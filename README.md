@@ -2,11 +2,10 @@
 - copy .env.example into .env
 - install golang 1.21.0
 - install docker
-- install task
+- install taskfile
 - task setup
 
 ## run
-- task docker:up
 - task run
 
 ## commands
@@ -14,4 +13,3 @@
 
 ## test
 - task test
-

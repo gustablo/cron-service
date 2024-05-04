@@ -6,5 +6,6 @@ tasks:
     summary: |
       It runs the application, which starts the cron service and the server API.
     cmds:
+      - cmd: task docker:up
       - cmd: go run ./cmd/main.go
 

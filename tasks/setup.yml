@@ -6,4 +6,5 @@ tasks:
     cmds:
       - cmd: go install github.com/pressly/goose/v3/cmd/goose@latest
       - cmd: brew install goose
-        ignore_erros: true
+        ignore_error: true
+      - cmd: task migrate:up

@@ -11,14 +11,14 @@ import (
 type Scheduler struct {
 	PendingQueue *JobsQueue
 	RunningQueue *JobsQueue
-	processChan  chan *Job
+	updateChan   chan *Job
 }
 
 func NewScheduler() *Scheduler {
 	return &Scheduler{
 		PendingQueue: NewJobsQueue(),
 		RunningQueue: NewJobsQueue(),
-		processChan:  make(chan *Job),
+		updateChan:   make(chan *Job),
 	}
 }
 
@@ -38,10 +38,20 @@ func (c *Scheduler) loadJobs() {
 func (c *Scheduler) Start() {
 	c.loadJobs()
 
-	go c.pickJobs()
+	go c.updateJobs()
 
-	for job := range c.processChan {
-		go c.process(job)
+	ticker := time.NewTicker(1 * time.Second)
+	for {
+		if !c.isRunningQueueFull() {
+			if job := c.PendingQueue.Shift(); job != nil {
+				c.RunningQueue.Insert(job)
+				go c.process(job)
+			} else {
+				<-ticker.C
+			}
+		} else {
+			<-ticker.C
+		}
 	}
 }
 
@@ -56,28 +66,11 @@ func (c *Scheduler) InsertConcurrently(newJob *Job) {
 	}
 }
 
-func (c *Scheduler) pickJobs() {
-	ticker := time.NewTicker(1 * time.Second)
-	for {
-		if !c.isRunningQueueFull() {
-			if job := c.PendingQueue.Shift(); job != nil {
-				c.processChan <- job
-			} else {
-				<-ticker.C
-			}
-		} else {
-			<-ticker.C
-		}
-	}
-}
-
 func (c *Scheduler) process(job *Job) {
+	fmt.Println("executing", job.Name)
 	if job.LastRun.Equal(job.ExecutionTime) {
 		job.ExecutionTime = NextExecution(job.Expression)
 	}
-
-	fmt.Println("executing:", job.Uuid)
-	c.RunningQueue.Insert(job)
 
 	sleepDuration := time.Until(job.ExecutionTime)
 	timer := time.NewTimer(sleepDuration)
@@ -85,7 +78,6 @@ func (c *Scheduler) process(job *Job) {
 
 	c.execute(job)
 	c.reprioritizeJob(job)
-	job.Update()
 }
 
 func (c *Scheduler) reprioritizeJob(job *Job) {
@@ -97,12 +89,24 @@ func (c *Scheduler) reprioritizeJob(job *Job) {
 	// bc it avoids longest jobs to be catch first
 	c.PendingQueue.Insert(job)
 	c.RunningQueue.RemoveAt(job.Uuid)
+
+	c.updateChan <- job
 }
 
 func (c *Scheduler) execute(job *Job) {
 	fmt.Println("finished:", job.Uuid)
 }
 
+func (c *Scheduler) updateJobs() {
+	for job := range c.updateChan {
+		if err := job.Update(); err != nil {
+			fmt.Println("Error while updating job:", job.Uuid)
+		} else {
+			fmt.Println("Job updated:", job.Uuid, job.ExecutionTime)
+		}
+	}
+}
+
 func (c *Scheduler) isRunningQueueFull() bool {
-	return c.RunningQueue.count >= config.MAX_GO_ROUTINES
+	return *c.RunningQueue.count >= config.MAX_GO_ROUTINES
 }

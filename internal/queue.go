@@ -15,17 +15,19 @@ func newNode(value *Job, next *node) *node {
 type JobsQueue struct {
 	head  *node
 	tail  *node
-	count int
+	count *int
 }
 
 func NewJobsQueue() *JobsQueue {
+	var count int
 	return &JobsQueue{
 		head:  nil,
-		count: 0,
+		count: &count,
 	}
 }
 
 func (l *JobsQueue) Insert(e *Job) {
+	*l.count = *l.count + 1
 	newNode := newNode(e, nil)
 
 	if l.head == nil {
@@ -60,7 +62,6 @@ func (l *JobsQueue) Insert(e *Job) {
 			l.tail = newNode
 		}
 	}
-	l.count++
 }
 
 func (l *JobsQueue) Shift() *Job {
@@ -72,7 +73,7 @@ func (l *JobsQueue) Shift() *Job {
 		if l.head == nil { // if the head is nil now it means it was the only node in the list, so tail is deleted too
 			l.tail = nil
 		}
-		l.count--
+		*l.count = *l.count - 1
 	}
 
 	return job
@@ -93,7 +94,7 @@ func (l *JobsQueue) Head() *Job {
 }
 
 func (l *JobsQueue) Count() int {
-	return l.count
+	return *l.count
 }
 
 func (l *JobsQueue) RemoveAt(uuid string) {
@@ -124,6 +125,6 @@ func (l *JobsQueue) RemoveAt(uuid string) {
 			}
 		}
 
-		l.count--
+		*l.count = *l.count - 1
 	}
 }
