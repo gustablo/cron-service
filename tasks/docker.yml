@@ -1,0 +1,16 @@
+version: '3'
+
+tasks:
+  up:
+    desc: 'Up docker containers'
+    summary: |
+      Up docker containers according to the docker-compose.yml file
+    cmds:
+      - cmd: docker compose up --detach
+  down:
+    desc: 'Kill docker containers'
+    summary: |
+      Kill the docker containers according to the docker-compose.yml file
+    cmds:
+      - cmd: docker compose down
+

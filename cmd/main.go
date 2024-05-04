@@ -8,7 +8,6 @@ import (
 func main() {
 	config.LoadEnv()
 	config.OpenConn()
-	config.Migrate()
 
 	runner := cron.NewScheduler()
 	runner.Start()

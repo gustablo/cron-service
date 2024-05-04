@@ -1,0 +1,10 @@
+version: '3'
+
+tasks:
+  default:
+    desc: 'Install all required dependencies to use the project'
+    cmds:
+      - go install github.com/pressly/goose/v3/cmd/goose@latest
+      - brew install goose
+    silent: true
+

@@ -1,0 +1,24 @@
+version: '3'
+
+dotenv: ['.env']
+
+includes:
+  setup:
+    taskfile: ./tasks/setup.yml
+    dir: .
+  docker:
+    taskfile: ./tasks/docker.yml
+    dir: .
+  run:
+    taskfile: ./tasks/run.yml
+    dir: .
+  build:
+    taskfile: ./tasks/build.yml
+    dir: .
+  test:
+    taskfile: ./tasks/test.yml
+    dir: .
+  migrate:
+    taskfile: ./tasks/migrate.yml
+    dir: .
+

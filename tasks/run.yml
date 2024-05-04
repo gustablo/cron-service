@@ -1,0 +1,10 @@
+version: '3'
+
+tasks:
+  default:
+    desc: 'Run application'
+    summary: |
+      It runs the application, which starts the cron service and the server API.
+    cmds:
+      - cmd: go run ./cmd/main.go
+

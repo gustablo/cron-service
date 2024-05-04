@@ -1,0 +1,10 @@
+version: '3'
+
+tasks:
+  default:
+    desc: 'Build application'
+    summary: |
+      Runs go build command and creates a executable file in the root folder
+    cmds:
+      - go build ./cmd/main.go
+

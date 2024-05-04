@@ -1,0 +1,31 @@
+version: '3'
+
+tasks:
+  create:
+    desc: 'Create a migration file'
+    summary: |
+      Create a migration file using goose library. Should pass an argument which will be the file name.
+      Ex: task migrate:create -- create_jobs_table
+    cmds:
+      - cmd: goose create {{.CLI_ARGS}} sql
+
+  status:
+    desc: 'Prints the migration status'
+    cmds:
+      - cmd: goose status
+
+  up:
+    desc: 'Runs all pending migrations'
+    cmds:
+      - cmd: goose up
+  
+  down:
+    desc: 'Down all migrations'
+    cmds:
+      - cmd: goose down
+
+  reset:
+    desc: 'Reset all migrations'
+    cmds:
+      - cmd: goose reset
+
