@@ -1,3 +1,3 @@
 package config
 
-const MAX_GO_ROUTINES = 10000
+const MAX_GO_ROUTINES = 10001

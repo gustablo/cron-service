@@ -1,11 +1,13 @@
 package cron
 
+import "github.com/gustablo/cron-service/internal/job"
+
 type node struct {
-	value *Job
+	value *job.Job
 	next  *node
 }
 
-func newNode(value *Job, next *node) *node {
+func newNode(value *job.Job, next *node) *node {
 	return &node{
 		value: value,
 		next:  next,
@@ -26,7 +28,7 @@ func NewJobsQueue() *JobsQueue {
 	}
 }
 
-func (l *JobsQueue) Insert(e *Job) {
+func (l *JobsQueue) Insert(e *job.Job) {
 	*l.count = *l.count + 1
 	newNode := newNode(e, nil)
 
@@ -64,8 +66,8 @@ func (l *JobsQueue) Insert(e *Job) {
 	}
 }
 
-func (l *JobsQueue) Shift() *Job {
-	var job *Job
+func (l *JobsQueue) Shift() *job.Job {
+	var job *job.Job
 
 	if l.head != nil {
 		job = l.head.value
@@ -79,14 +81,14 @@ func (l *JobsQueue) Shift() *Job {
 	return job
 }
 
-func (l *JobsQueue) Tail() *Job {
+func (l *JobsQueue) Tail() *job.Job {
 	if l.tail != nil {
 		return l.tail.value
 	}
 	return nil
 }
 
-func (l *JobsQueue) Head() *Job {
+func (l *JobsQueue) Head() *job.Job {
 	if l.head != nil {
 		return l.head.value
 	}

@@ -6,24 +6,28 @@ import (
 	"time"
 
 	"github.com/gustablo/cron-service/config"
+	"github.com/gustablo/cron-service/context"
+	"github.com/gustablo/cron-service/internal/job"
 )
 
 type Scheduler struct {
 	PendingQueue *JobsQueue
 	RunningQueue *JobsQueue
-	updateChan   chan *Job
+	updateChan   chan *job.Job
+	ctx          *context.Context
 }
 
-func NewScheduler() *Scheduler {
+func NewScheduler(ctx *context.Context) *Scheduler {
 	return &Scheduler{
 		PendingQueue: NewJobsQueue(),
 		RunningQueue: NewJobsQueue(),
-		updateChan:   make(chan *Job),
+		updateChan:   make(chan *job.Job),
+		ctx:          ctx,
 	}
 }
 
 func (c *Scheduler) loadJobs() {
-	jobs, err := All()
+	jobs, err := job.All()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,8 +59,9 @@ func (c *Scheduler) Start() {
 	}
 }
 
-func (c *Scheduler) InsertConcurrently(newJob *Job) {
+func (c *Scheduler) InsertConcurrently(newJob *job.Job) {
 	longestRunningJob := c.RunningQueue.Tail()
+	fmt.Println(newJob.IsJobScheduledBefore(longestRunningJob), longestRunningJob.ExecutionTime, newJob.ExecutionTime)
 
 	if longestRunningJob != nil && newJob.IsJobScheduledBefore(longestRunningJob) {
 		// it is bad cause if the number of InsertConcurrently is big there will be a lot of goroutines running
@@ -66,35 +71,35 @@ func (c *Scheduler) InsertConcurrently(newJob *Job) {
 	}
 }
 
-func (c *Scheduler) process(job *Job) {
-	fmt.Println("executing", job.Name)
-	if job.LastRun.Equal(job.ExecutionTime) {
-		job.ExecutionTime = NextExecution(job.Expression)
+func (c *Scheduler) process(j *job.Job) {
+	fmt.Println("executing", j.Name)
+	if j.LastRun.Equal(j.ExecutionTime) {
+		j.ExecutionTime = job.NextExecution(j.Expression)
 	}
 
-	sleepDuration := time.Until(job.ExecutionTime)
+	sleepDuration := time.Until(j.ExecutionTime)
 	timer := time.NewTimer(sleepDuration)
 	<-timer.C
 
-	c.execute(job)
-	c.reprioritizeJob(job)
+	c.execute(j)
+	c.reprioritizeJob(j)
 }
 
-func (c *Scheduler) reprioritizeJob(job *Job) {
+func (c *Scheduler) reprioritizeJob(j *job.Job) {
 	// put in the pending queue again after executed
-	job.LastRun = job.ExecutionTime
-	job.ExecutionTime = NextExecution(job.Expression).Add(1 * time.Second) // adding 1 sec to prevent the job to be set to the same minute
+	j.LastRun = j.ExecutionTime
+	j.ExecutionTime = job.NextExecution(j.Expression).Add(1 * time.Second) // adding 1 sec to prevent the job to be set to the same minute
 
 	// we should insert the job before remove it from the running queue
 	// bc it avoids longest jobs to be catch first
-	c.PendingQueue.Insert(job)
-	c.RunningQueue.RemoveAt(job.Uuid)
+	c.PendingQueue.Insert(j)
+	c.RunningQueue.RemoveAt(j.Uuid)
 
-	c.updateChan <- job
+	c.updateChan <- j
 }
 
-func (c *Scheduler) execute(job *Job) {
-	fmt.Println("finished:", job.Uuid)
+func (c *Scheduler) execute(j *job.Job) {
+	fmt.Println("finished:", j.Uuid)
 }
 
 func (c *Scheduler) updateJobs() {
