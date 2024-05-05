@@ -23,7 +23,7 @@ func (s *Server) ServeHTTP() {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
 
-	v1 := r.Group("/v1")
+	v1 := r.Group("/api/v1")
 
 	jobs := v1.Group("/jobs")
 	jobs.POST("", controllers.CreateJob)

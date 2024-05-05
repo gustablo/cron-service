@@ -3,20 +3,20 @@ package config
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gustablo/cron-service/context"
-	_ "github.com/lib/pq"
 	"log"
+	"os"
+
+	_ "github.com/lib/pq"
 )
 
 func NewDB() *sql.DB {
-	env := context.GetContext().Env
-
-	DB_USER := env.Get("DB_USER")
-	DB_NAME := env.Get("DB_NAME")
-	DB_PASS := env.Get("DB_PASS")
-	DB_HOST := env.Get("DB_HOST")
-	DB_PORT := env.Get("DB_PORT")
-	DB_SSL_MODE := env.Get("DB_SSL_MODE")
+	get := os.Getenv
+	DB_USER := get("DB_USER")
+	DB_NAME := get("DB_NAME")
+	DB_PASS := get("DB_PASS")
+	DB_HOST := get("DB_HOST")
+	DB_PORT := get("DB_PORT")
+	DB_SSL_MODE := get("DB_SSL_MODE")
 
 	stringConn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME, DB_SSL_MODE)
