@@ -8,32 +8,26 @@ import (
 	"github.com/gustablo/cron-service/internal/job"
 )
 
-type JobsController struct {
-	ctx *context.Context
-}
-
-func NewJobsController(ctx *context.Context) *JobsController {
-	return &JobsController{
-		ctx: ctx,
-	}
-}
-
 type jobRequest struct {
 	Name       string `json:"name"`
 	Expression string `json:"expression"`
 }
 
-func (jc *JobsController) CreateJob(c *gin.Context) {
+func CreateJob(c *gin.Context) {
 	var request jobRequest
 
 	if err := c.BindJSON(&request); err != nil {
-		c.IndentedJSON(http.StatusOK, gin.H{"message": "Error"})
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "Error parsing request body"})
 		return
 	}
 
-	job := job.NewJob(request.Name, request.Expression)
-	job.Save()
-	jc.ctx.Scheduler.InsertConcurrently(job)
+	newJob := job.NewJob(request.Name, request.Expression)
+	if err := newJob.Save(); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error creating job"})
+		return
+	}
+
+	context.GetContext().Scheduler.InsertConcurrently(newJob)
 
 	c.IndentedJSON(http.StatusCreated, gin.H{})
 }

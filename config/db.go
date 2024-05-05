@@ -3,21 +3,20 @@ package config
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
-
+	"github.com/gustablo/cron-service/context"
 	_ "github.com/lib/pq"
+	"log"
 )
 
-var DB *sql.DB
+func NewDB() *sql.DB {
+	env := context.GetContext().Env
 
-func OpenConn() {
-	DB_USER := os.Getenv("DB_USER")
-	DB_NAME := os.Getenv("DB_NAME")
-	DB_PASS := os.Getenv("DB_PASS")
-	DB_HOST := os.Getenv("DB_HOST")
-	DB_PORT := os.Getenv("DB_PORT")
-	DB_SSL_MODE := os.Getenv("DB_SSL_MODE")
+	DB_USER := env.Get("DB_USER")
+	DB_NAME := env.Get("DB_NAME")
+	DB_PASS := env.Get("DB_PASS")
+	DB_HOST := env.Get("DB_HOST")
+	DB_PORT := env.Get("DB_PORT")
+	DB_SSL_MODE := env.Get("DB_SSL_MODE")
 
 	stringConn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME, DB_SSL_MODE)
@@ -32,5 +31,5 @@ func OpenConn() {
 		log.Fatal(err)
 	}
 
-	DB = db
+	return db
 }

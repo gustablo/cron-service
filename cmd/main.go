@@ -8,13 +8,13 @@ import (
 )
 
 func main() {
-	config.LoadEnv()
-	config.OpenConn()
+	env := config.NewEnv()
+	db := config.NewDB()
+	srv := api.NewServer()
+	scheduler := cron.NewScheduler()
 
-	ctx := context.CreateContext()
+	context.NewContext(scheduler, db, env)
 
-	ctx.Register(api.NewServer(ctx), cron.NewScheduler(ctx))
-
-	go ctx.Scheduler.Start()
-	ctx.Server.ServeHTTP()
+	go scheduler.Start()
+	srv.ServeHTTP()
 }

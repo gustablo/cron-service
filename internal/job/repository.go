@@ -1,11 +1,13 @@
 package job
 
-import "github.com/gustablo/cron-service/config"
+import (
+	"github.com/gustablo/cron-service/context"
+)
 
 func All() ([]Job, error) {
 	var jobs []Job
 
-	rows, err := config.DB.Query("SELECT uuid, execution_time, last_run, expression, name FROM jobs ORDER BY execution_time ASC")
+	rows, err := context.GetContext().DB.Query("SELECT uuid, execution_time, last_run, expression, name FROM jobs ORDER BY execution_time ASC")
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +30,7 @@ func All() ([]Job, error) {
 }
 
 func (job *Job) Save() error {
-	_, err := config.DB.Exec("INSERT INTO jobs (uuid, execution_time, last_run, expression, name) VALUES ($1, $2, $3, $4, $5)",
+	_, err := context.GetContext().DB.Exec("INSERT INTO jobs (uuid, execution_time, last_run, expression, name) VALUES ($1, $2, $3, $4, $5)",
 		job.Uuid, job.ExecutionTime, job.LastRun, job.Expression, job.Name)
 	if err != nil {
 		return err
@@ -39,7 +41,7 @@ func (job *Job) Save() error {
 
 func (job *Job) Update() error {
 	query := "UPDATE jobs SET execution_time = $1, last_run = $2 WHERE uuid = $3"
-	_, err := config.DB.Exec(query, job.ExecutionTime, job.LastRun, job.Uuid)
+	_, err := context.GetContext().DB.Exec(query, job.ExecutionTime, job.LastRun, job.Uuid)
 	if err != nil {
 		return err
 	}

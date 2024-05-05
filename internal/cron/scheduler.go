@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gustablo/cron-service/config"
-	"github.com/gustablo/cron-service/context"
 	"github.com/gustablo/cron-service/internal/job"
 )
 
@@ -14,15 +13,13 @@ type Scheduler struct {
 	PendingQueue *JobsQueue
 	RunningQueue *JobsQueue
 	updateChan   chan *job.Job
-	ctx          *context.Context
 }
 
-func NewScheduler(ctx *context.Context) *Scheduler {
+func NewScheduler() *Scheduler {
 	return &Scheduler{
 		PendingQueue: NewJobsQueue(),
 		RunningQueue: NewJobsQueue(),
 		updateChan:   make(chan *job.Job),
-		ctx:          ctx,
 	}
 }
 
@@ -59,15 +56,15 @@ func (c *Scheduler) Start() {
 	}
 }
 
-func (c *Scheduler) InsertConcurrently(newJob *job.Job) {
+func (c *Scheduler) InsertConcurrently(newJob interface{}) {
+	j := newJob.(*job.Job)
 	longestRunningJob := c.RunningQueue.Tail()
-	fmt.Println(newJob.IsJobScheduledBefore(longestRunningJob), longestRunningJob.ExecutionTime, newJob.ExecutionTime)
 
-	if longestRunningJob != nil && newJob.IsJobScheduledBefore(longestRunningJob) {
+	if longestRunningJob != nil && j.IsJobScheduledBefore(longestRunningJob) {
 		// it is bad cause if the number of InsertConcurrently is big there will be a lot of goroutines running
-		go c.process(newJob)
+		go c.process(j)
 	} else {
-		c.PendingQueue.Insert(newJob)
+		c.PendingQueue.Insert(j)
 	}
 }
 

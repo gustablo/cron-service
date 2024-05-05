@@ -4,21 +4,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gustablo/cron-service/context"
 	api "github.com/gustablo/cron-service/internal/api/controllers"
 )
 
 type Server struct {
-	Addr           string
-	ctx            *context.Context
-	jobsController *api.JobsController
+	Addr string
 }
 
-func NewServer(ctx *context.Context) *Server {
+func NewServer() *Server {
 	return &Server{
-		Addr:           ":8080",
-		ctx:            ctx,
-		jobsController: api.NewJobsController(ctx),
+		Addr: ":8080",
 	}
 }
 
@@ -31,7 +26,7 @@ func (s *Server) ServeHTTP() {
 	v1 := r.Group("/v1")
 
 	jobs := v1.Group("/jobs")
-	jobs.POST("", s.jobsController.CreateJob)
+	jobs.POST("", api.CreateJob)
 
 	r.Run(s.Addr)
 }

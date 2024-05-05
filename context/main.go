@@ -1,18 +1,36 @@
 package context
 
+import (
+	"database/sql"
+	"sync"
+)
+
 type Context struct {
 	Scheduler Scheduler
-	Server    Server
+	DB        *sql.DB
+	Env       Env
 }
 
-func CreateContext() *Context {
-	return &Context{
-		Scheduler: nil,
-		Server:    nil,
-	}
+var (
+	context *Context
+	mutex   sync.Mutex
+	once    sync.Once
+)
+
+func NewContext(s Scheduler, db *sql.DB, env Env) *Context {
+	mutex.Lock()
+	defer mutex.Unlock()
+	once.Do(func() {
+		context = &Context{
+			Scheduler: s,
+			DB:        db,
+			Env:       env,
+		}
+	})
+
+	return context
 }
 
-func (c *Context) Register(srv Server, scheduler Scheduler) {
-	c.Scheduler = scheduler
-	c.Server = srv
+func GetContext() *Context {
+	return context
 }

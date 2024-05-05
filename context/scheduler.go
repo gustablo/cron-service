@@ -1,8 +1,7 @@
 package context
 
-import "github.com/gustablo/cron-service/internal/job"
-
-type Scheduler interface {
-	Start()
-	InsertConcurrently(newJob *job.Job)
-}
+type (
+	Scheduler interface {
+		InsertConcurrently(newJob interface{}) // need to find a way to do not use interface{}
+	}
+)
