@@ -4,5 +4,5 @@ tasks:
   default:
     desc: 'Run tests'
     cmds: 
-      - cmd: go test ./...
+      - cmd: go test -v ./...
 
