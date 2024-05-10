@@ -30,7 +30,7 @@ func All() ([]Job, error) {
 }
 
 func AllByUserID(userID int) ([]Job, error) {
-	var jobs []Job
+	jobs := []Job{}
 
 	rows, err := context.GetContext().DB.Query("SELECT uuid, execution_time, last_run, expression, name, webhook_url, user_id FROM jobs WHERE user_id = $1", userID)
 	if err != nil {
