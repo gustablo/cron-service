@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gustablo/cron-service/context"
@@ -11,6 +12,8 @@ import (
 type jobRequest struct {
 	Name       string `json:"name"`
 	Expression string `json:"expression"`
+	WebhookURL string `json:"webhook_url"`
+	UserID     int    `json:"user_id"`
 }
 
 func CreateJob(c *gin.Context) {
@@ -21,7 +24,7 @@ func CreateJob(c *gin.Context) {
 		return
 	}
 
-	newJob := job.NewJob(request.Name, request.Expression)
+	newJob := job.NewJob(request.Name, request.Expression, request.WebhookURL, request.UserID)
 	if err := newJob.Save(); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error creating job"})
 		return
@@ -30,4 +33,26 @@ func CreateJob(c *gin.Context) {
 	context.GetContext().Scheduler.InsertConcurrently(newJob)
 
 	c.IndentedJSON(http.StatusCreated, gin.H{})
+}
+
+func AllJobsByUserID(c *gin.Context) {
+	userID, exists := c.GetQuery("user_id")
+	if !exists {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "User ID is required"})
+		return
+	}
+
+	intUserID, err := strconv.Atoi(userID)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid User ID format"})
+		return
+	}
+
+	jobs, err := job.AllByUserID(intUserID)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error listing user jobs"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, jobs)
 }

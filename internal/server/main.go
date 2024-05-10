@@ -27,6 +27,7 @@ func (s *Server) ServeHTTP() {
 
 	jobs := v1.Group("/jobs")
 	jobs.POST("", controllers.CreateJob)
+	jobs.GET("", controllers.AllJobsByUserID)
 
 	r.Run(s.Addr)
 }

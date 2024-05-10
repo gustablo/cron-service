@@ -12,9 +12,11 @@ type Job struct {
 	Uuid          string
 	Expression    string
 	Name          string
+	WebhookURL    string
+	UserID        int
 }
 
-func NewJob(name string, expression string) *Job {
+func NewJob(name string, expression string, webhookURL string, userID int) *Job {
 	nextExecution := NextExecution(expression)
 
 	return &Job{
@@ -23,6 +25,8 @@ func NewJob(name string, expression string) *Job {
 		Name:          name,
 		Expression:    expression,
 		LastRun:       nextExecution,
+		WebhookURL:    webhookURL,
+		UserID:        userID,
 	}
 }
 

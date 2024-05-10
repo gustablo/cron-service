@@ -18,11 +18,16 @@ func TestNewJob(t *testing.T) {
 
 	name := "test_case"
 	expression := "* * * * *"
-	job := NewJob(name, expression)
+	webhookURL := "https://..."
+	userID := 1
+
+	job := NewJob(name, expression, webhookURL, userID)
 
 	assert.NotNil(t, job)
 	assert.Equal(t, expression, job.Expression)
 	assert.Equal(t, name, job.Name)
+	assert.Equal(t, job.WebhookURL, webhookURL)
+	assert.Equal(t, job.UserID, userID)
 
 	assert.Nil(t, uuid.Validate(job.Uuid))
 	assert.Equal(t, time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC), job.ExecutionTime)
