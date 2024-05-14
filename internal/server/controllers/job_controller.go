@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gustablo/cron-service/context"
@@ -10,10 +11,19 @@ import (
 )
 
 type jobRequest struct {
-	Name       string `json:"name"`
-	Expression string `json:"expression"`
-	WebhookURL string `json:"webhook_url"`
-	UserID     int    `json:"user_id"`
+	Name       string `json:"Name"`
+	Expression string `json:"Expression"`
+	WebhookURL string `json:"WebhookUrl"`
+	UserID     int    `json:"UserID"`
+}
+
+type jobResponse struct {
+	Name       string    `json:"Name"`
+	Expression string    `json:"Expression"`
+	WebhookURL string    `json:"WebhookUrl"`
+	UserID     int       `json:"UserID"`
+	LastRun    time.Time `json:"LastRun"`
+	NextRun    time.Time `json:"NextRun"`
 }
 
 func CreateJob(c *gin.Context) {
@@ -54,5 +64,17 @@ func AllJobsByUserID(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, jobs)
+	var response []jobResponse
+	for _, job := range jobs {
+		response = append(response, jobResponse{
+			Name:       job.Name,
+			Expression: job.Expression,
+			WebhookURL: job.WebhookURL,
+			UserID:     job.UserID,
+			LastRun:    job.LastRun,
+			NextRun:    job.ExecutionTime,
+		})
+	}
+
+	c.IndentedJSON(http.StatusOK, response)
 }
