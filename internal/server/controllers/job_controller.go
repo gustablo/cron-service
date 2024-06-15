@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -18,6 +19,7 @@ type jobRequest struct {
 }
 
 type jobResponse struct {
+	Uuid       string    `json:"Uuid"`
 	Name       string    `json:"Name"`
 	Expression string    `json:"Expression"`
 	WebhookURL string    `json:"WebhookUrl"`
@@ -36,6 +38,7 @@ func CreateJob(c *gin.Context) {
 
 	newJob := job.NewJob(request.Name, request.Expression, request.WebhookURL, request.UserID)
 	if err := newJob.Save(); err != nil {
+		fmt.Println(err.Error())
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error creating job"})
 		return
 	}
@@ -67,6 +70,7 @@ func AllJobsByUserID(c *gin.Context) {
 	var response []jobResponse
 	for _, job := range jobs {
 		response = append(response, jobResponse{
+			Uuid:       job.Uuid,
 			Name:       job.Name,
 			Expression: job.Expression,
 			WebhookURL: job.WebhookURL,

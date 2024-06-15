@@ -42,17 +42,16 @@ func (c *Scheduler) Start() {
 	go c.updateJobs()
 
 	ticker := time.NewTicker(1 * time.Second)
+
 	for {
 		if !c.isRunningQueueFull() {
 			if job := c.PendingQueue.Shift(); job != nil {
 				c.RunningQueue.Insert(job)
 				go c.process(job)
-			} else {
-				<-ticker.C
+				continue
 			}
-		} else {
-			<-ticker.C
 		}
+		<-ticker.C
 	}
 }
 

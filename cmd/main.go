@@ -11,10 +11,10 @@ func main() {
 	env := config.NewEnv()
 	db := config.NewDB()
 	srv := server.NewServer()
-	scheduler := scheduler.NewScheduler()
+	sched := scheduler.NewScheduler()
 
-	context.NewContext(scheduler, db, env)
+	context.NewContext(sched, db, env)
 
-	go scheduler.Start()
+	go sched.Start()
 	srv.ServeHTTP()
 }
